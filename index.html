@@ -98,6 +98,19 @@
     .answer.wrong{background:#57253c;border-color:#ff778c;color:#fff0f2}
     .answer.wrong .answer-letter{background:#ff8193;color:#421323;border-color:#ff8193}
     .answer.dim{opacity:.66}
+    /* Krátké potvrzení zvolené možnosti na dotyku i u myši.
+       Není to prozrazení správné odpovědi; vysvětlení patří až na konec. */
+    #gameScreen .answer.chosen, #gameScreen .answer.chosen:disabled{
+      background:linear-gradient(120deg,#8b165f,#682269);
+      border-color:#ffb3e0;
+      color:#fff;
+      opacity:1;
+      box-shadow:0 0 0 2px #ff86cc65,0 0 22px #ef4eb65e,inset 0 1px 0 #ffffff24;
+      transform:none;
+    }
+    #gameScreen .answer.chosen .answer-letter{
+      background:#ffe4f5;border-color:#fff0f9;color:#571541;
+    }
     .game-tip{margin:13px 4px;color:#b9a9c8;font-size:12px;text-align:center}
     .overlay{position:fixed;z-index:30;inset:0;background:#050507eb;display:none;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(9px)}
     .overlay.active{display:flex}
@@ -523,7 +536,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Math.floor(n).toLocaleString('cs-CZ');
 const clock = secs => { const x = Math.max(0,Math.ceil(secs)); return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'); };
-const state = { phase:'intro',duration:180,remaining:180,order:[],index:0,score:0,correct:0,streak:0,answered:[],locked:false,paused:false,lastTick:0,ticker:null};
+const state = { phase:'intro',duration:180,remaining:180,order:[],index:0,score:0,correct:0,streak:0,answered:[],locked:false,paused:false,lastTick:0,ticker:null,advanceTimer:null};
 
 function chartSvg(chart, mini){
   const narrow = window.innerWidth <= 700;
@@ -605,6 +618,7 @@ function selectDuration(seconds){
 }
 function startGame(){
   if(state.ticker)clearInterval(state.ticker);
+  if(state.advanceTimer){clearTimeout(state.advanceTimer);state.advanceTimer=null;}
   // Fisher–Yates: při každém spuštění nové náhodné pořadí všech 12 otázek.
   // Každý index se v poli objeví právě jednou; závěrečný přehled používá stejné pořadí.
   const order=Array.from({length:questions.length},(_,i)=>i);
@@ -649,6 +663,14 @@ function chooseAnswer(index){
   if(!Number.isInteger(index)||index<0||index>=q.choices.length)return;
   const correct=index===q.answer;
   state.locked=true;
+  // Nejdřív zřetelně rozsvítit právě zvolenou možnost. Ostatní tlačítka
+  // na okamžik zamknout, aby rychlý dvojdotyk nevyhodnotil další otázku.
+  $('answerArea').querySelectorAll('.answer').forEach(button=>{
+    const chosen=Number(button.dataset.answer)===index;
+    button.classList.toggle('chosen',chosen);
+    if(chosen)button.setAttribute('aria-pressed','true');
+    button.disabled=true;
+  });
   state.answered.push({qIndex:state.order[state.index],selected:index,correct});
   if(correct){
     state.correct++;
@@ -658,10 +680,15 @@ function chooseAnswer(index){
     state.streak=0;
     state.score-=20;
   }
-  // Bez mezikartičky a bez zastavení hodin – vyhodnocení zůstává na konci.
-  state.index++;
-  if(state.index>=questions.length)finishGame('complete');
-  else{renderQuestion();updateHud();}
+  // Hodiny běží i během krátkého zvýraznění. Bez kartičky a bez
+  // prozrazení správnosti; podrobný rozbor zůstává až na konci hry.
+  state.advanceTimer=setTimeout(()=>{
+    state.advanceTimer=null;
+    if(state.phase!=='game')return;
+    state.index++;
+    if(state.index>=questions.length)finishGame('complete');
+    else{renderQuestion();updateHud();}
+  },420);
 }
 function tick(){
   if(state.phase!=='game')return;
@@ -696,6 +723,7 @@ function saveRecord(score,correct,seconds){
 }
 function finishGame(reason){
   if(state.phase!=='game')return;
+  if(state.advanceTimer){clearTimeout(state.advanceTimer);state.advanceTimer=null;}
   if(state.ticker)clearInterval(state.ticker);state.ticker=null;
   const timeRemaining=Math.ceil(state.remaining);
   const completed=reason==='complete'&&state.answered.length===questions.length;
