@@ -603,10 +603,14 @@ function selectDuration(seconds){
 }
 function startGame(){
   if(state.ticker)clearInterval(state.ticker);
-  // Keep the user's illustrative task first, shuffle the remaining 11 tasks.
-  const rest=Array.from({length:questions.length-1},(_,i)=>i+1);
-  for(let i=rest.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rest[i],rest[j]]=[rest[j],rest[i]];}
-  state.order=[0,...rest];state.index=0;state.score=0;state.correct=0;state.streak=0;state.answered=[];
+  // Fisher–Yates: při každém spuštění nové náhodné pořadí všech 12 otázek.
+  // Každý index se v poli objeví právě jednou; závěrečný přehled používá stejné pořadí.
+  const order=Array.from({length:questions.length},(_,i)=>i);
+  for(let i=order.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  state.order=order;state.index=0;state.score=0;state.correct=0;state.streak=0;state.answered=[];
   state.locked=false;state.paused=false;state.remaining=state.duration;
   $('pauseOverlay').classList.remove('active');setScreen('game');renderQuestion();updateHud();
   state.lastTick=performance.now();state.ticker=setInterval(tick,80);
