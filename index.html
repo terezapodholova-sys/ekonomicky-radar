@@ -88,8 +88,10 @@
     .legend-item{display:inline-flex;align-items:center;gap:6px}
     .legend-dot{display:inline-block;width:11px;height:11px;border-radius:3px}
     .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .answer{min-height:69px;display:flex;align-items:center;gap:13px;text-align:left;padding:13px 16px;border:1px solid #553d59;border-radius:13px;background:#17171d;color:#f7efff;font-size:14px;font-weight:800;transition:background .13s,border-color .13s,transform .13s}
-    .answer:not(:disabled):hover{background:#291629;border-color:#ff95ce;transform:translateY(-1px)}
+    .answer{min-height:69px;display:flex;align-items:center;gap:13px;text-align:left;padding:13px 16px;border:1px solid #553d59;border-radius:13px;background:#17171d;color:#f7efff;font-size:14px;font-weight:800;transition:background .13s,border-color .13s,transform .13s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    /* Zvýraznění při najetí myší jen na zařízeních se skutečným hoverem.
+       Dotykový prohlížeč jinak může ponechat zvýrazněnou odpověď z předchozí otázky. */
+    @media (hover: hover) and (pointer: fine){.answer:not(:disabled):hover{background:#291629;border-color:#ff95ce;transform:translateY(-1px)}}
     .answer-letter{flex:0 0 33px;display:grid;place-items:center;width:33px;height:33px;border:1px solid #664a6d;border-radius:10px;color:#e5d2e9;background:#111116;font-weight:1000}
     .answer.correct{background:#19483e;border-color:#5ee2b0;color:#eafff0}
     .answer.correct .answer-letter{color:#103f34;background:#73e3b6;border-color:#73e3b6}
@@ -635,7 +637,11 @@ function renderQuestion(){
   $('questionSub').textContent=q.subtitle;
   drawCharts(q);
   $('answerArea').innerHTML=q.choices.map((ch,i)=>`<button class="answer" type="button" data-answer="${i}" aria-label="Odpověď ${i+1}: ${esc(ch)}"><span class="answer-letter">${'ABCD'[i]}</span><span>${esc(ch)}</span></button>`).join('');
-  $('answerArea').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>chooseAnswer(Number(b.dataset.answer))));
+  $('answerArea').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    // Uvolnit focus po dotyku/kliknutí ještě před vykreslením další otázky.
+    b.blur();
+    chooseAnswer(Number(b.dataset.answer));
+  }));
 }
 function chooseAnswer(index){
   if(state.phase!=='game'||state.paused||state.locked)return;
