@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#21132e">
+  <meta name="description" content="Ekonomický radar – svižná hra s grafy pro Den otevřených dveří Ekonomického lycea.">
+  <title>Ekonomický radar | Mise Ekonomické lyceum</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#050505; --surface:#0f0f12; --panel:#15151a; --panel2:#1b1b22;
+      --line:#4b334d; --muted:#cabccf; --text:#fff8ff; --mint:#ff7cc7;
+      --cyan:#b18dff; --gold:#ffd486; --pink:#ff8bbd; --red:#ff738b;
+      --shadow:0 22px 80px #000a;
+    }
+    *{box-sizing:border-box}
+    html{min-height:100%;scroll-behavior:smooth}
+    body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(ellipse at 8% -8%,#ff008833 0%,transparent 34%),radial-gradient(ellipse at 95% 0%,#7e3cff26 0%,transparent 36%),linear-gradient(150deg,#050505 0%,#08080a 56%,#0a0a0d 100%);}
+    body:before{content:"";pointer-events:none;position:fixed;inset:0;opacity:.14;background-image:linear-gradient(#8f4a8730 1px,transparent 1px),linear-gradient(90deg,#8f4a8730 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,#000,transparent 90%)}
+    button{font:inherit;cursor:pointer}
+    button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+    button:disabled{cursor:default;opacity:.65}
+    .shell{position:relative;max-width:1100px;margin:0 auto;padding:26px 20px 50px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:26px}
+    .identity{display:flex;align-items:center;gap:13px}
+    .brand-mark{width:45px;height:45px;border:1px solid #ed65b988;background:linear-gradient(145deg,#301230,#121216);border-radius:14px;display:grid;place-items:center;box-shadow:0 0 25px #ed299b20}
+    .brand-mark svg{width:28px;height:28px}
+    .eyebrow{color:var(--mint);text-transform:uppercase;letter-spacing:.17em;font-weight:900;font-size:10px;line-height:1.5}
+    .brand-name{font-size:17px;font-weight:850;letter-spacing:-.02em}
+    .top-pill{border:1px solid var(--line);border-radius:99px;padding:9px 13px;background:#15151bbd;color:#f1e7f3;font-size:12px;font-weight:800;white-space:nowrap}
+    .screen{display:none;animation:appear .3s ease both}
+    .screen.active{display:block}
+    @keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    h1,h2,h3,p{margin-top:0}
+    h1{font-size:clamp(43px,6.7vw,79px);line-height:.99;letter-spacing:-.065em;margin:14px 0 20px;font-weight:920}
+    h1 span{color:var(--mint)}
+    h2{font-size:clamp(24px,3.5vw,35px);line-height:1.2;letter-spacing:-.035em;margin:7px 0 8px}
+    .lead{color:#e3d1e6;max-width:510px;font-size:17px;line-height:1.65;margin-bottom:22px}
+    .intro-wrap{display:grid;grid-template-columns:1.13fr .87fr;gap:26px;align-items:center;margin-top:24px}
+    .intro-copy{padding:14px 0}
+    .tag{font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #ee5db469;border-radius:99px;background:#ee158e10;color:#ffb9dc}
+    .rules{display:flex;gap:11px;flex-wrap:wrap;margin:17px 0 22px}
+    .rule{padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:#17171cb3;color:#eadff1;font-size:13px;font-weight:700}
+    .rule strong{color:var(--mint)}
+    .duration-label{font-size:12px;color:#c7b4d2;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin:25px 0 10px}
+    .duration{display:flex;gap:9px;flex-wrap:wrap}
+    .time-choice{border:1px solid #5d3f61;border-radius:12px;background:#18181d;color:#eee2f7;padding:13px 18px;font-weight:900;min-width:126px;transition:.16s}
+    .time-choice small{display:block;margin-top:3px;color:#bbaacb;font-weight:600;font-size:11px}
+    .time-choice.selected{border-color:var(--mint);background:#2a1526;box-shadow:inset 0 0 0 1px #ff80ca4a;color:#fff0f8}
+    .start-button,.play-again{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:0;border-radius:16px;background:linear-gradient(110deg,#ec008c,#943ec2);color:#fff8ff;font-size:17px;font-weight:1000;letter-spacing:.02em;padding:18px 27px;min-height:58px;box-shadow:0 14px 40px #ec008c45;transition:transform .15s,filter .15s;margin-top:23px}
+    .start-button:hover,.play-again:hover{transform:translateY(-2px);filter:brightness(1.06)}
+    .subnote{font-size:12px;color:#b9a7c7;margin-top:11px;line-height:1.5}
+    .radar-card{aspect-ratio:1/1;max-width:465px;width:100%;border-radius:30px;border:1px solid #83488fa8;background:radial-gradient(circle at 50% 50%,#291128 0,#15151b 55%,#0c0c10 100%);box-shadow:var(--shadow);position:relative;display:grid;place-items:center;overflow:hidden;justify-self:end}
+    .radar-card:before{content:"";position:absolute;inset:11%;border:1px solid #ff83c337;border-radius:50%;box-shadow:0 0 0 54px #e923930a,0 0 0 108px #e9239310}
+    .radar-card:after{content:"";position:absolute;inset:0;background:conic-gradient(from 0deg,transparent 0deg,transparent 245deg,#ec008c34 314deg,#ff62b34d 344deg,transparent 360deg);animation:radarSpin 9s linear infinite}
+    @keyframes radarSpin{to{transform:rotate(360deg)}}
+    .radar-graphic{width:85%;height:85%;position:relative;z-index:1;filter:drop-shadow(0 0 6px #ff68bc2b)}
+    .radar-text{position:absolute;z-index:2;bottom:13%;padding:7px 14px;color:#ffe5f4;background:#17121be8;border:1px solid #f263b75e;border-radius:30px;font-weight:900;font-size:11px;letter-spacing:.16em}
+    .stats-row{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:14px;margin-top:15px}
+    .stat{border:1px solid var(--line);border-radius:19px;background:#15151bbd;padding:16px 20px;min-height:110px}
+    .stat-label{color:#c2aed0;text-transform:uppercase;letter-spacing:.13em;font-size:11px;font-weight:950}
+    .stat-number{font-size:clamp(27px,3.7vw,43px);font-variant-numeric:tabular-nums;letter-spacing:-.05em;font-weight:950;margin-top:5px;line-height:1.1}
+    .stat-number.mint{color:var(--mint)}
+    .stat-number.gold{color:var(--gold)}
+    .stat-sub{color:#b5a0c6;font-size:11px;margin-top:5px;font-weight:600}
+    .stat-time{text-align:center}
+    #pauseButton{border:1px solid #5c415f;background:#19191f;color:#eee2f5;padding:5px 13px;border-radius:9px;font-size:12px;font-weight:900;margin-top:6px}
+    .progress{height:8px;border-radius:20px;background:#221724;margin:14px 0 16px;overflow:hidden;position:relative}
+    .progress > div{height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,#9d50d6,#ec008c);transition:width .12s linear}
+    .question-panel{border:1px solid #55395a;border-radius:23px;background:linear-gradient(145deg,#131318f5,#0e0e12f7);padding:clamp(17px,3vw,28px);box-shadow:0 20px 60px #0006}
+    .question-upper{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .question-label{display:inline-flex;gap:8px;align-items:center;color:#ff9ed0;font-size:11px;font-weight:950;letter-spacing:.13em;text-transform:uppercase}
+    .question-index{font-size:12px;color:#cbb8d5;font-weight:850}
+    #questionText{margin-top:9px;font-size:clamp(23px,3.25vw,33px);max-width:900px}
+    #questionSub{color:#ddcbe5;font-size:13px;margin-bottom:13px;line-height:1.5}
+    .chart-area{display:grid;gap:11px;margin:14px 0 17px}
+    .chart-area.multi{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .chart-area.triple{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .chart-card{border:1px solid #4e3654;border-radius:15px;background:linear-gradient(155deg,#17171d,#101015);padding:11px 12px 8px;min-width:0}
+    .chart-card.single{padding:12px 16px 7px}
+    .chart-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:22px}
+    .chart-title{font-size:13px;font-weight:900;color:#fbf3ff;letter-spacing:.005em}
+    .chart-unit{font-size:10px;color:#c9b2d4;font-weight:700;text-align:right}
+    .chart-svg{width:100%;height:143px;display:block;overflow:visible}
+    .chart-card.single .chart-svg{height:214px}
+    .chart-legend{display:flex;justify-content:center;gap:20px;align-items:center;flex-wrap:wrap;padding:3px 0 4px;color:#ddcee9;font-size:12px;font-weight:800}
+    .legend-item{display:inline-flex;align-items:center;gap:6px}
+    .legend-dot{display:inline-block;width:11px;height:11px;border-radius:3px}
+    .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .answer{min-height:69px;display:flex;align-items:center;gap:13px;text-align:left;padding:13px 16px;border:1px solid #553d59;border-radius:13px;background:#17171d;color:#f7efff;font-size:14px;font-weight:800;transition:background .13s,border-color .13s,transform .13s}
+    .answer:not(:disabled):hover{background:#291629;border-color:#ff95ce;transform:translateY(-1px)}
+    .answer-letter{flex:0 0 33px;display:grid;place-items:center;width:33px;height:33px;border:1px solid #664a6d;border-radius:10px;color:#e5d2e9;background:#111116;font-weight:1000}
+    .answer.correct{background:#19483e;border-color:#5ee2b0;color:#eafff0}
+    .answer.correct .answer-letter{color:#103f34;background:#73e3b6;border-color:#73e3b6}
+    .answer.wrong{background:#57253c;border-color:#ff778c;color:#fff0f2}
+    .answer.wrong .answer-letter{background:#ff8193;color:#421323;border-color:#ff8193}
+    .answer.dim{opacity:.66}
+    .game-tip{margin:13px 4px;color:#b9a9c8;font-size:12px;text-align:center}
+    .overlay{position:fixed;z-index:30;inset:0;background:#050507eb;display:none;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(9px)}
+    .overlay.active{display:flex}
+    .overlay-card{width:min(100%,430px);border:1px solid #6c4b6b;background:linear-gradient(140deg,#18181e,#0d0d11);border-radius:24px;text-align:center;padding:36px 25px;box-shadow:var(--shadow)}
+    .overlay-symbol{font-size:49px;margin-bottom:9px}
+    .overlay-card h2{margin-bottom:14px}
+    .overlay-card p{line-height:1.55;color:#dac9e4}
+    .results{max-width:800px;margin:15px auto}
+    .results-head{text-align:center;border:1px solid #6a476e;border-radius:25px;background:linear-gradient(145deg,#17171d,#0d0d11);padding:30px 24px 27px;box-shadow:var(--shadow)}
+    .result-icon{font-size:57px;line-height:1;margin-bottom:10px}
+    .result-title{font-size:clamp(24px,4vw,38px);font-weight:950;letter-spacing:-.04em;margin:8px 0 4px}
+    .result-score{font-size:clamp(48px,8vw,79px);letter-spacing:-.07em;font-weight:1000;color:var(--mint);line-height:1.1;margin:10px 0}
+    .result-meta{display:flex;justify-content:center;flex-wrap:wrap;gap:9px;margin-top:12px;color:#e8d8f1}
+    .result-meta span{background:#19191f;border:1px solid #6a476e;padding:8px 11px;border-radius:99px;font-size:12px;font-weight:850}
+    .result-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:9px}
+    .result-actions .play-again{margin-top:20px}
+    .secondary-button{margin-top:20px;border:1px solid #67486a;color:#f6e8fb;background:#18181e;min-height:58px;padding:13px 20px;border-radius:14px;font-weight:900}
+    .records,.review{border:1px solid var(--line);background:#141419;border-radius:19px;padding:18px 22px;margin-top:18px}
+    .records h3,.review h3{font-size:16px;margin-bottom:10px}
+    .record-list{margin:0;padding:0;list-style:none;display:grid;gap:7px}
+    .record-list li{display:flex;justify-content:space-between;color:#e3d3e9;font-size:13px;border-bottom:1px solid #ffffff10;padding:5px 0}
+    .record-list li:first-child{color:var(--gold);font-weight:850}
+    .review details{border-top:1px solid #61476e;padding:11px 0;color:#f4e5f8;font-size:13px}
+    .review summary{cursor:pointer;font-weight:850;line-height:1.4}
+    .review details p{color:#d8c4e0;margin:7px 0 0;line-height:1.5}
+    .review .ok{color:var(--mint)}
+    .review .bad{color:var(--pink)}
+    .footer{text-align:center;color:#a592b4;font-size:11px;margin-top:22px}
+    @media(max-width:800px){
+      .intro-wrap{grid-template-columns:1fr}.radar-card{width:min(100%,370px);justify-self:center}.intro-copy{padding:0}
+      .chart-area.triple{grid-template-columns:repeat(2,minmax(0,1fr))}.chart-area.triple .chart-card:last-child{grid-column:1/-1;width:calc(50% - 6px);justify-self:center}
+    }
+    @media(max-width:560px){
+      .shell{padding:16px 12px 32px}.top{margin-bottom:14px}.brand-name{font-size:13px}.brand-mark{width:39px;height:39px}.top-pill{font-size:10px;padding:8px}
+      .eyebrow{font-size:9px}.lead{font-size:15px}.intro-wrap{gap:15px;margin-top:8px}
+      .rule{font-size:12px;padding:10px}.stats-row{gap:7px}.stat{padding:11px 9px;min-height:96px;border-radius:13px}.stat-label{font-size:9px}.stat-number{font-size:27px}.stat-sub{font-size:9px}#pauseButton{font-size:10px;padding:5px 8px}
+      .question-panel{padding:13px;border-radius:16px}#questionText{font-size:21px}.question-index{font-size:10px}
+      .chart-area{gap:7px;margin:10px 0 12px}.chart-card{padding:7px 6px 4px;border-radius:10px}.chart-title{font-size:11px}.chart-unit{font-size:9px}.chart-head{align-items:start}
+      .chart-area.multi,.chart-area.triple{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .chart-area.triple .chart-card:last-child{grid-column:1/-1;width:calc(50% - 4px)}
+      .chart-svg{height:106px}.chart-card.single .chart-svg{height:170px}.chart-card.single{padding:9px 8px 3px}
+      .answers{gap:7px}.answer{min-height:73px;font-size:12px;gap:8px;padding:10px 8px;border-radius:10px}.answer-letter{flex-basis:26px;width:26px;height:26px;border-radius:8px}
+      .results-head{padding:25px 15px}.records,.review{padding:15px 13px}
+    }
+    @media(max-width:350px){.answer{font-size:11px}.stat-number{font-size:23px}.chart-area.triple{grid-template-columns:1fr}.chart-area.triple .chart-card:last-child{width:100%;grid-column:auto}.chart-area.triple .chart-card{width:100%}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+    /* VERZE 1.1 — Hraní vždy na jedné obrazovce. */
+    body:has(#gameScreen.active){height:100dvh;overflow:hidden}
+    body:has(#gameScreen.active) .shell{
+      width:100%;max-width:1280px;height:100dvh;margin:0 auto;
+      padding:10px 16px 9px;display:flex;flex-direction:column;overflow:hidden;
+    }
+    body:has(#gameScreen.active) .top{flex:none;margin-bottom:7px;min-height:39px}
+    body:has(#gameScreen.active) .brand-mark{width:38px;height:38px;border-radius:11px}
+    body:has(#gameScreen.active) .brand-mark svg{width:23px;height:23px}
+    body:has(#gameScreen.active) .footer{display:none}
+    body:has(#gameScreen.active) main{display:flex;flex:1;min-height:0}
+    #gameScreen.active{display:flex;flex:1;min-height:0;min-width:0;flex-direction:column}
+    #gameScreen .stats-row{flex:none;margin-top:0;gap:9px}
+    #gameScreen .stat{padding:8px 13px;min-height:66px;border-radius:13px}
+    #gameScreen .stat-label{font-size:9px}
+    #gameScreen .stat-number{font-size:clamp(23px,3.1vw,33px);margin-top:0}
+    #gameScreen .stat-sub{margin-top:0;font-size:10px}
+    #gameScreen #pauseButton{padding:3px 10px;margin-top:1px;font-size:11px}
+    #gameScreen .progress{flex:none;height:5px;margin:7px 0 9px}
+    #gameScreen .question-panel{
+      display:flex;flex-direction:column;flex:1;min-height:0;
+      padding:12px 16px 13px;border-radius:17px;overflow:hidden;
+    }
+    #gameScreen .question-upper{flex:none}
+    #gameScreen #questionText{flex:none;font-size:clamp(19px,2.4vw,27px);line-height:1.13;margin:5px 0}
+    #gameScreen #questionSub{flex:none;font-size:clamp(11px,1.25vw,13px);line-height:1.27;margin:0 0 4px}
+    #gameScreen .chart-area,
+    #gameScreen .chart-area.multi,
+    #gameScreen .chart-area.triple{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));flex:1 1 auto;min-height:100px;gap:8px;margin:5px 0 9px;align-items:stretch}
+    #gameScreen .chart-area.triple{grid-template-columns:repeat(3,minmax(0,1fr))}
+    #gameScreen .chart-area:has(.chart-card:only-child){grid-template-columns:minmax(0,1fr)}
+    #gameScreen .chart-area.triple .chart-card:last-child{grid-column:auto;width:auto;justify-self:stretch}
+    #gameScreen .chart-card{display:flex;flex-direction:column;min-width:0;min-height:0;padding:7px 8px 5px;border-radius:11px}
+    #gameScreen .chart-head{flex:none;min-height:18px;align-items:center}
+    #gameScreen .chart-title{font-size:clamp(10px,1.25vw,13px)}
+    #gameScreen .chart-unit{font-size:10px;white-space:nowrap}
+    #gameScreen .chart-svg,
+    #gameScreen .chart-card.single .chart-svg{height:100%;width:100%;min-height:0;flex:1 1 auto;object-fit:contain}
+    #gameScreen .chart-legend{flex:none;gap:9px;padding:0 0 2px;font-size:10px}
+    #gameScreen .legend-dot{width:9px;height:9px}
+    .axis-captions{display:flex;flex:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1px 8px;padding-top:2px;border-top:1px solid #6f4b7066;font-size:clamp(9px,.95vw,11px);font-weight:750;color:#ddcbe5}
+    .axis-x{color:#d7c5e0}
+    .axis-y{color:#ffa0d4}
+    #gameScreen .answers{flex:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+    #gameScreen .answer{min-height:46px;font-size:13px;line-height:1.15;padding:8px 11px;gap:9px;border-radius:10px}
+    #gameScreen .answer-letter{flex:0 0 26px;width:26px;height:26px;border-radius:8px}
+    #gameScreen .game-tip{flex:none;font-size:10px;line-height:1.1;margin:5px 0 0}
+    @media(max-width:700px){
+      body:has(#gameScreen.active) .shell{padding:6px 7px 5px}
+      body:has(#gameScreen.active) .top{margin-bottom:5px;gap:5px;min-height:30px}
+      body:has(#gameScreen.active) .brand-mark{height:30px;width:30px;border-radius:8px}
+      body:has(#gameScreen.active) .brand-mark svg{height:20px;width:20px}
+      body:has(#gameScreen.active) .identity{gap:6px}
+      body:has(#gameScreen.active) .top-pill{font-size:8px;padding:5px 7px}
+      body:has(#gameScreen.active) .brand-name{font-size:12px}
+      body:has(#gameScreen.active) .eyebrow{font-size:7px;letter-spacing:.07em}
+      #gameScreen .stats-row{gap:5px}
+      #gameScreen .stat{padding:5px 7px;min-height:56px;border-radius:9px}
+      #gameScreen .stat-label{font-size:8px;letter-spacing:.035em}
+      #gameScreen .stat-number{font-size:clamp(17px,4.9vw,27px)}
+      #gameScreen .stat-sub{font-size:9px}
+      #gameScreen #pauseButton{font-size:9px;padding:2px 7px}
+      #gameScreen .progress{margin:5px 0 5px;height:4px}
+      #gameScreen .question-panel{padding:7px;border-radius:10px}
+      #gameScreen .question-label{font-size:9px;letter-spacing:.06em}
+      #gameScreen .question-index{font-size:9px}
+      #gameScreen #questionText{font-size:clamp(17px,4.2vw,23px);line-height:1.12;margin:4px 0}
+      #gameScreen #questionSub{font-size:10.5px;line-height:1.23;margin:0 0 2px}
+      #gameScreen .chart-area,
+      #gameScreen .chart-area.multi,
+      #gameScreen .chart-area.triple{gap:4px;margin:4px 0 6px;min-height:85px}
+      #gameScreen .chart-card{padding:4px 3px 3px;border-radius:6px}
+      #gameScreen .chart-head{min-height:15px;gap:1px;display:flex;align-items:start;flex-direction:column}
+      #gameScreen .chart-title{font-size:10px;line-height:1.1}
+      #gameScreen .chart-unit{font-size:8px;line-height:1.1}
+      #gameScreen .chart-svg,#gameScreen .chart-card.single .chart-svg{height:100%;flex:1}
+      #gameScreen .axis-captions{font-size:8px;line-height:1.15;gap:1px 4px;min-height:25px;align-content:center}
+      #gameScreen .chart-legend{font-size:9px;gap:7px;justify-content:center}
+      #gameScreen .answers{gap:5px}
+      #gameScreen .answer{min-height:42px;font-size:11px;gap:5px;padding:6px 6px;border-radius:7px}
+      #gameScreen .answer-letter{flex:0 0 22px;width:22px;height:22px;border-radius:6px}
+      #gameScreen .game-tip{display:none}
+    }
+    @media(max-height:690px){
+      #gameScreen .stat{min-height:49px}
+      #gameScreen .progress{margin-top:4px;margin-bottom:4px}
+      #gameScreen .answer{min-height:37px}
+      #gameScreen .chart-area{min-height:70px}
+      #gameScreen .question-panel{padding-top:6px;padding-bottom:6px}
+      #gameScreen #questionSub{font-size:10.5px}
+      #gameScreen .chart-legend{font-size:9px}
+    }
+    @media(max-height:535px){
+      body:has(#gameScreen.active) .shell{padding-top:3px;padding-bottom:3px}
+      body:has(#gameScreen.active) .top{margin-bottom:2px}
+      #gameScreen .stat{padding-top:3px;padding-bottom:3px;min-height:44px}
+      #gameScreen .chart-area{min-height:58px}
+      #gameScreen .answer{min-height:34px;padding-top:4px;padding-bottom:4px}
+    }
+
+    /* Grafy mají rozumnou výšku i na vysokých displejích telefonu. */
+    #gameScreen .chart-area{align-items:center}
+    #gameScreen .chart-card{height:min(100%,320px);align-self:center}
+    @media(max-width:700px){
+      #gameScreen .chart-card{height:min(100%,200px)}
+    }
+    @media(max-width:700px) and (min-height:536px){
+      #gameScreen .question-panel{justify-content:center}
+      #gameScreen .chart-area,
+      #gameScreen .chart-area.multi,
+      #gameScreen .chart-area.triple{flex:0 0 auto;height:clamp(138px,30dvh,240px);min-height:0}
+      #gameScreen .chart-card{height:min(100%,198px)}
+    }
+    @media(max-height:430px){
+      #gameScreen .game-tip{display:none}
+      body:has(#gameScreen.active) .top{display:none}
+      #gameScreen .stat{min-height:37px;padding-top:2px;padding-bottom:2px}
+      #gameScreen .stat-number{font-size:21px}
+      #gameScreen .progress{margin:3px 0;height:3px}
+      #gameScreen .question-panel{padding:5px 9px}
+      #gameScreen #questionText{font-size:18px;line-height:1.08;margin:2px 0}
+      #gameScreen #questionSub{font-size:10px;line-height:1.12}
+      #gameScreen .answer{min-height:29px;padding:2px 6px}
+      #gameScreen .chart-area{min-height:40px;margin:2px 0 3px}
+      #gameScreen .chart-card{height:min(100%,112px)}
+      #gameScreen .axis-captions{font-size:9px;min-height:15px}
+    }
+
+    /* Barevná varianta 1.4 – jemná inspirace školním růžovo-fialovým přechodem. */
+    .shell:before{content:"";pointer-events:none;position:absolute;top:0;left:20px;right:20px;height:3px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#ec008c 0%,#b71c92 47%,#6a2b90 100%);opacity:.87}
+    .question-panel{box-shadow:0 18px 65px #11071965,inset 0 1px 0 #ffffff0b}
+    .chart-card{box-shadow:inset 0 1px 0 #ffffff0c}
+    .answer{box-shadow:inset 0 1px 0 #ffffff08}
+    .start-button,.play-again{color:#fffaff;text-shadow:0 1px 2px #390d3a70}
+    .review .ok{color:#6fe1b0}
+    .review .bad{color:#ff849a}
+    .answer.correct{color:#edfff5}
+    #pauseButton:hover,.secondary-button:hover{border-color:#c77bbb;background:#483052}
+    .time-choice.selected{color:#fff3fd}
+    @media(max-width:700px){.shell:before{left:7px;right:7px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="identity">
+      <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="12" stroke="#ff9fd6" stroke-width="1.7"/><circle cx="16" cy="16" r="6.6" stroke="#ff9fd6" stroke-opacity=".6" stroke-width="1.7"/><path d="M16 16L25 8M16 16V6" stroke="#d7adff" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div><div class="eyebrow">Mise Ekonomické lyceum</div><div class="brand-name">EKONOMICKÝ RADAR</div></div>
+    </div>
+    <div class="top-pill">DOD <span style="color:#f55fb0">●</span> LOGIKA &amp; POSTŘEH</div>
+  </header>
+
+  <main>
+    <section id="introScreen" class="screen active" aria-labelledby="introTitle">
+      <div class="intro-wrap">
+        <div class="intro-copy">
+          <div class="tag">◉ &nbsp; ANALYZUJ · ROZHODNI · ZÍSKEJ BODY</div>
+          <h1 id="introTitle">Zachyť<br><span>signál.</span></h1>
+          <p class="lead">Dokážeš číst grafy, nepodlehnout klamavým špičkám a odhalit nejlepší rozhodnutí? Máš 180 sekund na <strong style="color:white">12 různých výzev</strong>.</p>
+          <div class="rules"><div class="rule"><strong>12</strong> grafických úkolů</div><div class="rule"><strong>4</strong> odpovědi</div><div class="rule"><strong>+100</strong> za správnou</div><div class="rule"><strong>−20</strong> za chybu</div></div>
+          <div class="duration-label">Časový limit mise</div>
+          <div class="duration"><div class="time-choice selected" aria-label="180 sekund">180 sekund<small>3 minuty na 12 úloh</small></div></div>
+          <button class="start-button" id="startButton">SPUSTIT RADAR <span aria-hidden="true">➜</span></button>
+          <div class="subnote">Po každé odpovědi hned následuje další úloha. <strong>Souhrn správných i chybných odpovědí a jejich vysvětlení najdeš až na konci kvízu.</strong> Hra skončí po 12 odpovědích nebo vypršení času. Během hry můžeš zapnout pauzu.</div>
+        </div>
+        <div class="radar-card" aria-hidden="true">
+          <svg class="radar-graphic" viewBox="0 0 400 400" fill="none">
+            <circle cx="200" cy="200" r="156" stroke="#f38ec4" stroke-opacity=".4" stroke-width="1.6"/>
+            <circle cx="200" cy="200" r="110" stroke="#f38ec4" stroke-opacity=".32" stroke-width="1.4"/>
+            <circle cx="200" cy="200" r="55" stroke="#f38ec4" stroke-opacity=".37" stroke-width="1.4"/>
+            <path d="M44 200H356M200 44V356" stroke="#f38ec4" stroke-opacity=".3" stroke-dasharray="5 7"/>
+            <path d="M65 270L103 238L145 260L180 170L215 209L260 105L298 143L338 68" stroke="#ff76bc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M65 292L107 282L145 299L183 260L218 272L260 221L300 247L338 225" stroke="#c298fa" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".75"/>
+            <circle cx="260" cy="105" r="9" fill="#ff76bc" stroke="#1c182f" stroke-width="4"/>
+            <circle cx="338" cy="68" r="9" fill="#ff76bc" stroke="#1c182f" stroke-width="4"/>
+            <circle cx="200" cy="200" r="8" fill="#ffe5f3"/>
+          </svg>
+          <div class="radar-text">● SYSTÉM PŘIPRAVEN</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen" aria-label="Hra Ekonomický radar">
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">Skóre</div><div class="stat-number mint" id="scoreValue">0</div><div class="stat-sub" id="streakValue">Série: 0</div></div>
+        <div class="stat stat-time"><div class="stat-label">Zbývá čas</div><div class="stat-number gold" id="timerValue" aria-live="off">03:00</div><button id="pauseButton" aria-label="Pozastavit hru">Ⅱ PAUZA</button></div>
+        <div class="stat"><div class="stat-label">Úloha</div><div class="stat-number" id="taskValue">1 / 12</div><div class="stat-sub" id="correctValue">Správně: 0</div></div>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Zbývající čas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="timerProgress"><div id="timerFill"></div></div>
+      <div class="question-panel">
+        <div class="question-upper"><div class="question-label">▦ &nbsp; <span id="questionCategory">GRAFICKÝ DETEKTIV</span></div><div class="question-index" id="questionCount">OTÁZKA 01 / 12</div></div>
+        <h2 id="questionText"></h2>
+        <p id="questionSub"></p>
+        <div class="chart-area" id="chartArea"></div>
+        <div class="answers" id="answerArea" role="group" aria-label="Vyber jednu ze čtyř odpovědí"></div>
+        
+      </div>
+      <div class="game-tip">Tip: při hraní na počítači můžeš odpovídat klávesami <strong>1, 2, 3, 4</strong>.</div>
+    </section>
+
+    <section id="resultScreen" class="screen" aria-label="Výsledek hry">
+      <div class="results">
+        <div class="results-head">
+          <div class="tag">◉ &nbsp; MISE DOKONČENA</div>
+          <div class="result-icon" id="rankIcon">🏆</div>
+          <div class="result-title" id="rankTitle">Investiční stratég</div>
+          <p style="color:#ddcae7;margin:6px 0 0">Tvoje finální skóre</p>
+          <div class="result-score" id="finalScore">0</div>
+          <div class="result-meta"><span id="finalCorrect">0 / 12 správně</span><span id="finalTime">Zbývalo: 0 s</span><span id="finalBonus">Časový bonus: +0</span></div>
+          <div class="result-actions"><button class="play-again" id="againButton">HRÁT ZNOVU ↻</button><button class="secondary-button" id="settingsButton">ZPĚT NA ÚVOD</button></div>
+        </div>
+        <div class="records"><h3>🏅 Nejlepší výsledky na tomto zařízení</h3><ol id="recordList" class="record-list"></ol></div>
+        <div class="review"><h3>🗂 Přehled úloh a vysvětlení</h3><div id="reviewList"></div></div>
+      </div>
+    </section>
+  </main>
+  <div class="footer">EKONOMICKÝ RADAR</div>
+</div>
+
+<div class="overlay" id="pauseOverlay" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+  <div class="overlay-card"><div class="overlay-symbol">⏸</div><h2 id="pauseTitle">Radar pozastaven</h2><p>Čas stojí. Až budeš připravený/á, pokračuj ve hře.</p><button class="start-button" style="margin-top:10px" id="resumeButton">POKRAČOVAT ➜</button></div>
+</div>
+<script>
+'use strict';
+// ---------------------------------------------
+// EKONOMICKÝ RADAR – otázky pro DOD.
+// 12 obsahově odlišných grafických úloh. Hodnoty jsou ilustrativní.
+// Grafy se kreslí přímo ze zde uvedených dat, bez knihoven a internetu.
+// ---------------------------------------------
+const palette = ['#ff83c3','#bda0ff','#ffd686','#5cdbd2'];
+const period4 = ['1. čtv.','2. čtv.','3. čtv.','4. čtv.'];
+const period5 = ['1','2','3','4','5'];
+function line(title, values, labels, max=100, options={}) { return {type:'line',title,series:[{label:title,values,color:options.color||palette[0]}],labels,max,unit:options.unit||'tis. Kč',showValues:!!options.showValues}; }
+const questions = [
+  {
+    category:'SOUČET ZA OBDOBÍ',
+    title:'Která firma vydělala za celé tři roky nejvíce?',
+    subtitle:'Šest bodů = šest pololetí v letech 2023–2025. Všechny grafy mají stejné měřítko. Pozor: jeden vysoký vrchol není totéž co celkový zisk.',
+    charts:[
+      line('A · ALFA',[35,80,30,85,45,90],['1','2','3','4','5','6'],100,{color:palette[0]}),
+      line('B · BETA',[10,8,6,100,8,4],['1','2','3','4','5','6'],100,{color:palette[1]}),
+      line('C · GAMA',[20,22,25,23,26,24],['1','2','3','4','5','6'],100,{color:palette[2]})
+    ],
+    choices:['Firma ALFA (A)','Firma BETA (B)','Firma GAMA (C)','Všechny firmy vydělaly stejně'],
+    answer:0,
+    explanation:'Sečteme všech šest pololetí: ALFA 365 tis. Kč, BETA 136 tis. Kč, GAMA 140 tis. Kč. Špička není totéž co součet.'
+  },
+  {
+    category:'NEJVĚTŠÍ RŮST',
+    title:'Která firma zvýšila tržby nejvíc od začátku do konce roku?',
+    subtitle:'Porovnej 1. a 4. čtvrtletí. Rozhoduje rozdíl koncové a počáteční hodnoty, ne nejvyšší bod grafu.',
+    charts:[
+      line('A · NORA',[20,30,40,50],['1','2','3','4'],100,{color:palette[0]}),
+      line('B · LIMA',[70,70,60,75],['1','2','3','4'],100,{color:palette[1]}),
+      line('C · VEGA',[25,20,40,95],['1','2','3','4'],100,{color:palette[2]}),
+      line('D · TERA',[60,50,45,55],['1','2','3','4'],100,{color:palette[3]})
+    ],
+    choices:['Firma NORA (A)','Firma LIMA (B)','Firma VEGA (C)','Firma TERA (D)'],answer:2,
+    explanation:'VEGA vzrostla z 25 na 95 tis. Kč, tedy o 70 tis. Kč. To je největší zvýšení.'
+  },
+  {
+    category:'ČTENÍ SLOUPCŮ',
+    title:'Která prodejna měla nejvyšší roční tržby?',
+    subtitle:'Sloupce ukazují tržby čtyř prodejen v tisících korun.',
+    charts:[{type:'bar',title:'Tržby prodejen',labels:['A','B','C','D'],values:[64,84,78,93],max:100,unit:'tis. Kč',showValues:true}],
+    choices:['Prodejna A','Prodejna B','Prodejna C','Prodejna D'],answer:3,
+    explanation:'Nejvyšší sloupec má prodejna D: 93 tis. Kč.'
+  },
+  {
+    category:'HLEDÁNÍ MINIMA',
+    title:'Ve kterém čtvrtletí byly náklady nejnižší?',
+    subtitle:'Nižší náklady jsou v grafu blíže spodní hraně.',
+    charts:[line('Vývoj nákladů',[78,60,64,46],['1. čtv.','2. čtv.','3. čtv.','4. čtv.'],100,{showValues:true,color:palette[1]})],
+    choices:['V 1. čtvrtletí','Ve 2. čtvrtletí','Ve 3. čtvrtletí','Ve 4. čtvrtletí'],answer:3,
+    explanation:'Ve 4. čtvrtletí byly náklady jen 46 tis. Kč, nejméně za celý rok.'
+  },
+  {
+    category:'STABILITA',
+    title:'Která firma má nejstabilnější tržby?',
+    subtitle:'Hledej graf, v němž se hodnoty v pěti obdobích mění nejméně.',
+    charts:[
+      line('A · MAXI',[25,80,30,75,25],period5,100,{color:palette[0]}),
+      line('B · STELA',[54,56,55,54,55],period5,100,{color:palette[1]}),
+      line('C · RIO',[20,30,65,90,35],period5,100,{color:palette[2]}),
+      line('D · NOVA',[60,40,75,20,82],period5,100,{color:palette[3]})
+    ],
+    choices:['Firma MAXI (A)','Firma STELA (B)','Firma RIO (C)','Firma NOVA (D)'],answer:1,
+    explanation:'STELA má hodnoty 54 až 56 tis. Kč. Rozdíl mezi maximem a minimem je jen 2 tis. Kč.'
+  },
+  {
+    category:'BOD ZVRATU',
+    title:'Kdy se obchod poprvé dostal do zisku?',
+    subtitle:'Zisk nastává tehdy, když jsou tržby vyšší než náklady. Sleduj obě křivky.',
+    charts:[{type:'line',title:'Tržby × náklady',labels:period4,max:100,unit:'tis. Kč',showValues:true,series:[{label:'Tržby',values:[30,45,65,82],color:palette[0]},{label:'Náklady',values:[50,55,54,60],color:palette[3]}]}],
+    choices:['V 1. čtvrtletí','Ve 2. čtvrtletí','Ve 3. čtvrtletí','Ve 4. čtvrtletí'],answer:2,
+    explanation:'Ve 3. čtvrtletí byly tržby 65 tis. Kč a náklady 54 tis. Kč: poprvé vznikl zisk.'
+  },
+  {
+    category:'TRŽBY MINUS NÁKLADY',
+    title:'Který produkt přinesl nejvyšší zisk?',
+    subtitle:'U každého produktu odečti náklady od tržeb. Samotné tržby nestačí.',
+    charts:[{type:'grouped',title:'Srovnání produktů',labels:['A','B','C','D'],max:110,unit:'tis. Kč',series:[{label:'Tržby',values:[95,80,100,65],color:palette[0]},{label:'Náklady',values:[60,30,65,20],color:palette[3]}],showValues:true}],
+    choices:['Produkt A','Produkt B','Produkt C','Produkt D'],answer:1,
+    explanation:'Produkt B má zisk 80 − 30 = 50 tis. Kč. Produkty A a C mají 35 a D má 45 tis. Kč.'
+  },
+  {
+    category:'NEJVĚTŠÍ PROPAD',
+    title:'Která firma zaznamenala nejprudší jednorázový propad?',
+    subtitle:'Hledej největší pokles mezi dvěma sousedními body grafu.',
+    charts:[
+      line('A · LUX',[85,70,68,65],['1','2','3','4'],100,{color:palette[0]}),
+      line('B · MIO',[95,90,20,18],['1','2','3','4'],100,{color:palette[1]}),
+      line('C · EKO',[55,50,45,40],['1','2','3','4'],100,{color:palette[2]}),
+      line('D · TOP',[70,75,55,60],['1','2','3','4'],100,{color:palette[3]})
+    ],
+    choices:['Firma LUX (A)','Firma MIO (B)','Firma EKO (C)','Firma TOP (D)'],answer:1,
+    explanation:'Firma MIO spadla z 90 na 20 tis. Kč během jediného období: pokles o 70 tis. Kč.'
+  },
+  {
+    category:'CELKOVÝ PRODEJ',
+    title:'Kolik obchod utržil za všechny čtyři měsíce dohromady?',
+    subtitle:'Sloupce zobrazují měsíční tržby v tisících korun. Sečti jejich hodnoty.',
+    charts:[{type:'bar',title:'Měsíční tržby',labels:['Leden','Únor','Březen','Duben'],values:[20,30,45,25],max:50,unit:'tis. Kč',showValues:true}],
+    choices:['100 tis. Kč','110 tis. Kč','120 tis. Kč','130 tis. Kč'],answer:2,
+    explanation:'20 + 30 + 45 + 25 = 120 tis. Kč.'
+  },
+  {
+    category:'PROCENTNÍ RŮST',
+    title:'Mezi kterými měsíci tržby procentně vzrostly nejvíc?',
+    subtitle:'Pozor na rozdíl mezi přírůstkem v korunách a procentním růstem oproti předchozímu měsíci.',
+    charts:[line('Tržby',[20,30,36,72],['Leden','Únor','Březen','Duben'],80,{showValues:true,color:palette[2]})],
+    choices:['Leden → únor','Únor → březen','Březen → duben','Ve všech úsecích stejně'],answer:2,
+    explanation:'Z 36 na 72 tis. Kč je nárůst o 100 %. Předchozí růsty byly 50 % a 20 %.'
+  },
+  {
+    category:'ZAČÁTEK A KONEC',
+    title:'Která firma skončila přesně na stejné hodnotě, na jaké začala?',
+    subtitle:'Porovnej první a poslední bod každého grafu. Cesta mezi nimi nerozhoduje.',
+    charts:[
+      line('A · UNO',[20,40,60,80],['1','2','3','4'],100,{color:palette[0]}),
+      line('B · BIZ',[60,55,45,40],['1','2','3','4'],100,{color:palette[1]}),
+      line('C · FIN',[40,75,50,65],['1','2','3','4'],100,{color:palette[2]}),
+      line('D · KAP',[50,75,25,50],['1','2','3','4'],100,{color:palette[3]})
+    ],
+    choices:['Firma UNO (A)','Firma BIZ (B)','Firma FIN (C)','Firma KAP (D)'],answer:3,
+    explanation:'KAP začala i skončila na 50 tis. Kč, i když mezitím její hodnoty kolísaly.'
+  },
+  {
+    category:'POROVNÁNÍ ROZDÍLŮ',
+    title:'V kterém roce byl největší rozdíl mezi tržbami a náklady?',
+    subtitle:'V každém roce porovnej výšku růžového a tyrkysového sloupce.',
+    charts:[{type:'grouped',title:'Roční hospodaření',labels:['2023','2024','2025'],max:120,unit:'tis. Kč',showValues:true,series:[{label:'Tržby',values:[75,100,115],color:palette[0]},{label:'Náklady',values:[60,55,105],color:palette[3]}]}],
+    choices:['V roce 2023','V roce 2024','V roce 2025','Rozdíl je každý rok stejný'],answer:1,
+    explanation:'Rozdíly činí 15, 45 a 10 tis. Kč. Největší byl v roce 2024.'
+  }
+];
+
+// Jednoduché popisy obou os pro každý typ grafu.
+const axesByQuestion = [
+  ['Pololetí','Zisk'],
+  ['Čtvrtletí','Tržby'],
+  ['Prodejny','Tržby'],
+  ['Čtvrtletí','Náklady'],
+  ['Období','Tržby'],
+  ['Čtvrtletí','Tržby / náklady'],
+  ['Produkty','Tržby / náklady'],
+  ['Období','Tržby'],
+  ['Měsíce','Tržby'],
+  ['Měsíce','Tržby'],
+  ['Období','Tržby'],
+  ['Roky','Tržby / náklady']
+];
+questions.forEach((q, i) => { [q.xAxis, q.yAxis] = axesByQuestion[i]; });
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Math.floor(n).toLocaleString('cs-CZ');
+const clock = secs => { const x = Math.max(0,Math.ceil(secs)); return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0'); };
+const state = { phase:'intro',duration:180,remaining:180,order:[],index:0,score:0,correct:0,streak:0,answered:[],locked:false,paused:false,lastTick:0,ticker:null};
+
+function chartSvg(chart, mini){
+  const narrow = window.innerWidth <= 700;
+  const W = mini ? 190 : (narrow ? 420 : 650), H = mini ? 150 : (narrow ? 240 : 250);
+  const p = {l:mini?26:44,r:mini?6:14,t:mini?11:20,b:mini?24:35};
+  const cw = W-p.l-p.r, ch=H-p.t-p.b;
+  const max=chart.max||100;
+  const xFor = (i,count)=> p.l + (count<=1?cw/2:i*cw/(count-1));
+  const yFor = v=> p.t+ch*(1-v/max);
+  const arr = [];
+  arr.push(`<svg class="chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)} – ${esc(chart.unit || '')}">`);
+  // Three identical, labeled grid levels keep comparisons fair.
+  [0,.5,1].forEach(f=>{
+    const y=yFor(f*max);
+    arr.push(`<line x1="${p.l}" y1="${y}" x2="${p.l+cw}" y2="${y}" stroke="#886c91" stroke-opacity=".39" stroke-dasharray="4 5"/>`);
+    arr.push(`<text x="${p.l-8}" y="${y+4}" text-anchor="end" fill="#c4b1d1" font-size="${mini?12:14}" font-weight="700">${Number.isInteger(f*max)?f*max:(f*max).toFixed(1)}</text>`);
+  });
+  // Osy X a Y jsou zakreslené i v samotném grafu.
+  arr.push(`<line x1="${p.l}" y1="${p.t}" x2="${p.l}" y2="${p.t+ch}" stroke="#bea5cb" stroke-opacity=".65" stroke-width="1.4"/>`);
+  arr.push(`<line x1="${p.l}" y1="${p.t+ch}" x2="${p.l+cw}" y2="${p.t+ch}" stroke="#bea5cb" stroke-opacity=".65" stroke-width="1.4"/>`);
+  const labels=chart.labels||[];
+  const n=labels.length;
+  if(chart.type === 'bar' || chart.type === 'grouped'){
+    const vals=chart.type==='bar'?[{values:chart.values,color:palette[1],label:'Hodnota'}]:chart.series;
+    const band=cw/n, groupWidth=Math.min(band*.7,chart.type==='grouped'?115:100), barW=groupWidth/vals.length*.84;
+    labels.forEach((lab,i)=>{
+      const center=p.l+band*(i+.5);
+      vals.forEach((s,j)=>{
+        const v=s.values[i], x=center-groupWidth/2+j*(groupWidth/vals.length)+(groupWidth/vals.length-barW)/2;
+        const y=yFor(v),h=p.t+ch-y;
+        arr.push(`<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h,1)}" rx="3.5" fill="${s.color}" opacity=".96"/>`);
+        if(chart.showValues)arr.push(`<text x="${x+barW/2}" y="${Math.max(13,y-5)}" text-anchor="middle" fill="#fff2fa" font-size="${mini?12:mini?13:14}" font-weight="900">${v}</text>`);
+      });
+      arr.push(`<text x="${center}" y="${H-9}" text-anchor="middle" fill="#ddc8e8" font-size="${mini?12:15}" font-weight="800">${esc(lab)}</text>`);
+    });
+  } else {
+    (chart.series||[]).forEach((s)=>{
+      const points=s.values.map((v,i)=>[xFor(i,s.values.length),yFor(v)]);
+      const pointsStr=points.map(x=>x.join(',')).join(' ');
+      arr.push(`<polyline points="${pointsStr}" stroke="${s.color}" stroke-width="${mini?3.6:4.6}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
+      points.forEach(([x,y],i)=>{
+        arr.push(`<circle cx="${x}" cy="${y}" r="${mini?4.2:5.8}" fill="${s.color}" stroke="#251a35" stroke-width="${mini?1.8:2.2}"/>`);
+        if(chart.showValues){
+          const offset=(chart.series.length>1 && chart.series.indexOf(s)===1)?18:-11;
+          const centerY=Math.max(11,Math.min(H-15,y+offset));
+          arr.push(`<text x="${x}" y="${centerY}" text-anchor="middle" fill="${s.color}" font-size="${mini?12:14}" font-weight="900">${s.values[i]}</text>`);
+        }
+      });
+    });
+    labels.forEach((lab,i)=>{
+      if(mini && n>5 && i%2===1 && i!==n-1)return;
+      arr.push(`<text x="${xFor(i,n)}" y="${H-8}" text-anchor="middle" fill="#d6c3e1" font-size="${mini?12:14}" font-weight="750">${esc(lab)}</text>`);
+    });
+  }
+  arr.push('</svg>');
+  return arr.join('');
+}
+function drawCharts(q){
+  const area=$('chartArea');
+  const mini=q.charts.length>1;
+  area.className='chart-area'+(q.charts.length===3?' triple':q.charts.length===4?' multi':'');
+  area.innerHTML=q.charts.map(c=>{
+    const series=c.series||[];
+    const legend=(series.length>1 && (c.type==='line'||c.type==='grouped')) ? `<div class="chart-legend">${series.map(s=>`<span class="legend-item"><i class="legend-dot" style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}</div>`:'';
+    return `<div class="chart-card ${mini?'':'single'}"><div class="chart-head"><span class="chart-title">${esc(c.title)}</span><span class="chart-unit">${esc(c.unit||'')}</span></div>${chartSvg(c,mini)}${legend}<div class="axis-captions" aria-label="Osa Y: ${esc(q.yAxis)} (${esc(c.unit||'')}); osa X: ${esc(q.xAxis)}"><span class="axis-y">↑ ${esc(q.yAxis)}</span><span class="axis-x">→ ${esc(q.xAxis)}</span></div></div>`;
+  }).join('');
+}
+function setScreen(which){
+  ['intro','game','result'].forEach(n=>$(n+'Screen').classList.toggle('active',n===which));
+  state.phase=which;
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function selectDuration(seconds){
+  state.duration=seconds; state.remaining=seconds;
+  document.querySelectorAll('.time-choice').forEach(b=>{
+    const selected=Number(b.dataset.seconds)===seconds;
+    b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));
+  });
+}
+function startGame(){
+  if(state.ticker)clearInterval(state.ticker);
+  // Keep the user's illustrative task first, shuffle the remaining 11 tasks.
+  const rest=Array.from({length:questions.length-1},(_,i)=>i+1);
+  for(let i=rest.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rest[i],rest[j]]=[rest[j],rest[i]];}
+  state.order=[0,...rest];state.index=0;state.score=0;state.correct=0;state.streak=0;state.answered=[];
+  state.locked=false;state.paused=false;state.remaining=state.duration;
+  $('pauseOverlay').classList.remove('active');setScreen('game');renderQuestion();updateHud();
+  state.lastTick=performance.now();state.ticker=setInterval(tick,80);
+}
+function updateHud(){
+  $('scoreValue').textContent=fmt(state.score);
+  $('streakValue').textContent=`Série: ${state.streak}`;
+  $('timerValue').textContent=clock(state.remaining);
+  $('timerValue').style.color=state.remaining<15?'#ff8195':'var(--gold)';
+  $('taskValue').textContent=`${Math.min(state.index+1,questions.length)} / ${questions.length}`;
+  $('correctValue').textContent=`Správně: ${state.correct}`;
+  const percent=Math.max(0,state.remaining/state.duration*100);
+  $('timerFill').style.width=percent+'%';$('timerProgress').setAttribute('aria-valuenow',String(Math.round(percent)));
+}
+function renderQuestion(){
+  if(state.index>=state.order.length){finishGame('complete');return;}
+  const q=questions[state.order[state.index]];
+  state.locked=false;
+  $('questionCategory').textContent=q.category;
+  $('questionCount').textContent=`OTÁZKA ${String(state.index+1).padStart(2,'0')} / ${questions.length}`;
+  $('questionText').textContent=q.title;
+  $('questionSub').textContent=q.subtitle;
+  drawCharts(q);
+  $('answerArea').innerHTML=q.choices.map((ch,i)=>`<button class="answer" type="button" data-answer="${i}" aria-label="Odpověď ${i+1}: ${esc(ch)}"><span class="answer-letter">${'ABCD'[i]}</span><span>${esc(ch)}</span></button>`).join('');
+  $('answerArea').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>chooseAnswer(Number(b.dataset.answer))));
+}
+function chooseAnswer(index){
+  if(state.phase!=='game'||state.paused||state.locked)return;
+  const q=questions[state.order[state.index]];
+  if(!Number.isInteger(index)||index<0||index>=q.choices.length)return;
+  const correct=index===q.answer;
+  state.locked=true;
+  state.answered.push({qIndex:state.order[state.index],selected:index,correct});
+  if(correct){
+    state.correct++;
+    state.streak++;
+    state.score+=100+(state.streak>=3?25:0);
+  }else{
+    state.streak=0;
+    state.score-=20;
+  }
+  // Bez mezikartičky a bez zastavení hodin – vyhodnocení zůstává na konci.
+  state.index++;
+  if(state.index>=questions.length)finishGame('complete');
+  else{renderQuestion();updateHud();}
+}
+function tick(){
+  if(state.phase!=='game')return;
+  const now=performance.now();const delta=Math.min(250,now-state.lastTick);
+  state.lastTick=now;
+  if(state.paused)return; // Čas stojí pouze při ručně zapnuté pauze.
+  state.remaining=Math.max(0,state.remaining-delta/1000);
+  if(state.remaining<=0){finishGame('timeout');return;}
+  updateHud();
+}
+function togglePause(on){
+  if(state.phase!=='game'||state.locked)return;
+  state.paused=on;state.lastTick=performance.now();
+  $('pauseOverlay').classList.toggle('active',on);
+  if(on)$('resumeButton').focus();else $('pauseButton').focus();
+}
+function getRank(score){
+  if(score>=1150)return {name:'Ekonomický génius',icon:'👑'};
+  if(score>=850)return {name:'Investiční stratég',icon:'🏆'};
+  if(score>=500)return {name:'Finanční analytik',icon:'📊'};
+  return {name:'Ekonomický nováček',icon:'🌱'};
+}
+function loadRecords(){
+  try{const items=JSON.parse(localStorage.getItem('ekonomicky-radar-results-v1')||'[]');return Array.isArray(items)?items.filter(x=>Number.isFinite(x.score)).slice(0,5):[];}
+  catch{return [];}
+}
+function saveRecord(score,correct,seconds){
+  try{
+    const recs=loadRecords();recs.push({score,correct,seconds,date:new Date().toLocaleDateString('cs-CZ')});
+    recs.sort((a,b)=>b.score-a.score||b.correct-a.correct);localStorage.setItem('ekonomicky-radar-results-v1',JSON.stringify(recs.slice(0,5)));
+  }catch{/* Hra funguje i při zakázaném místním úložišti. */}
+}
+function finishGame(reason){
+  if(state.phase!=='game')return;
+  if(state.ticker)clearInterval(state.ticker);state.ticker=null;
+  const timeRemaining=Math.ceil(state.remaining);
+  const completed=reason==='complete'&&state.answered.length===questions.length;
+  const bonus=completed?Math.ceil(state.remaining)*5:0;
+  const total=state.score+bonus;
+  const rank=getRank(total);
+  $('rankIcon').textContent=rank.icon;$('rankTitle').textContent=rank.name;
+  $('finalScore').textContent=fmt(total);
+  $('finalCorrect').textContent=`${state.correct} / ${questions.length} správně`;
+  $('finalTime').textContent=completed?`Zbývalo: ${timeRemaining} s`:'Čas vypršel';
+  $('finalBonus').textContent=`Časový bonus: +${bonus}`;
+  saveRecord(total,state.correct,state.duration);
+  const recs=loadRecords();
+  $('recordList').innerHTML=recs.length?recs.map((r,i)=>`<li><span>${i+1}. &nbsp; ${esc(r.date||'')} · ${r.seconds||180} s</span><strong>${fmt(r.score)} bodů</strong></li>`).join(''):'<li>Zatím bez uložených rekordů</li>';
+  const answeredMap=new Map(state.answered.map(a=>[a.qIndex,a]));
+  $('reviewList').innerHTML=state.order.map((qi,i)=>{
+    const q=questions[qi],a=answeredMap.get(qi);const status=a?(a.correct?'<span class="ok">✓</span>':'<span class="bad">✕</span>'):'<span>—</span>';
+    const own=a?`Tvoje odpověď: ${esc(q.choices[a.selected])}. `:'Nezodpovězeno. ';
+    return `<details><summary>${status} &nbsp; ${i+1}. ${esc(q.title)}</summary><p>${own}Správně: <b>${esc(q.choices[q.answer])}</b>. ${esc(q.explanation)}</p></details>`;
+  }).join('');
+  setScreen('result');
+}
+
+// Délka hry je pro tuto verzi pevně nastavena na 180 sekund.
+$('startButton').addEventListener('click',startGame);
+$('pauseButton').addEventListener('click',()=>togglePause(true));
+$('resumeButton').addEventListener('click',()=>togglePause(false));
+$('againButton').addEventListener('click',startGame);
+$('settingsButton').addEventListener('click',()=>setScreen('intro'));
+document.addEventListener('keydown',e=>{
+  if(state.phase==='game'){
+    if(state.paused){if(e.key==='Escape'||e.key===' '){e.preventDefault();togglePause(false);}return;}
+    if(e.key==='Escape'||e.key.toLowerCase()==='p'){e.preventDefault();togglePause(true);return;}
+    if(['1','2','3','4'].includes(e.key)){e.preventDefault();if(!e.repeat)chooseAnswer(Number(e.key)-1);}
+  }
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.phase==='game'&&!state.paused&&!state.locked)togglePause(true);});
+// Public read-only diagnostics for testing the question bank.
+window.EconomicRadar = Object.freeze({questions, getState:()=>({phase:state.phase,index:state.index,score:state.score,correct:state.correct,duration:state.duration,remaining:state.remaining})});
+</script>
+</body>
+</html>
